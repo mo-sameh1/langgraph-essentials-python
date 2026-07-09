@@ -22,6 +22,8 @@ def langsmith_tracing_context(
     """Return a safe tracing context manager for workflow entrypoints."""
 
     resolved_config = config or get_langsmith_config()
+    if enabled is False:
+        return tracing_context(enabled=False)
     if enabled is None:
         tracing_enabled = resolved_config.tracing_active
     else:

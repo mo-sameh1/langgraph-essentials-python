@@ -102,10 +102,16 @@ Seed or refresh the canonical LangSmith dataset:
 uv run python -m langgraph_course.email_workflow.langsmith.seed_dataset
 ```
 
-Run deterministic evaluations locally without uploading results:
+Run local evaluations against the real Ollama-backed workflow without uploading results:
 
 ```bash
 uv run python -m langgraph_course.email_workflow.langsmith.run_evaluations --mode all
+```
+
+For a faster iteration loop, start with:
+
+```bash
+uv run python -m langgraph_course.email_workflow.langsmith.run_evaluations --mode pre-review
 ```
 
 Upload one evaluation experiment to LangSmith when you want a tracked run:

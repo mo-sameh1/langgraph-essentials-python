@@ -72,10 +72,24 @@ Possible outcomes:
 - tracing LangGraph workflow runs
 - debugging run trees in Studio
 - seeding evaluation datasets
-- running deterministic offline evaluations
+- running real Ollama-backed workflow evaluations
 - attaching structured review feedback
 
 The application continues to run normally when LangSmith is unconfigured.
+
+### Evaluation behavior
+
+The evaluation targets now call the real email workflow rather than a scripted
+stand-in. That means:
+
+- local dry runs exercise the actual LangGraph flow and local Ollama model
+- uploaded experiments evaluate the same real workflow in LangSmith
+- `pre-review` is the quickest evaluation mode for iteration
+- `approved` and `rejected` also exercise the resume path through the real graph
+
+When you run local evaluations without `--upload-results`, the repository
+explicitly disables tracing for that process so a global `LANGSMITH_TRACING=true`
+setting does not cause accidental uploads.
 
 ### Trace structure
 

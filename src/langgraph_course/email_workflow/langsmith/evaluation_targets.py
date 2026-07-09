@@ -6,27 +6,17 @@ from typing import Any, Literal
 
 from langgraph.checkpoint.memory import InMemorySaver
 
-from .. import build_email_workflow
+from .. import build_email_workflow, create_default_services
 from ..helpers import require_classification
-from ..services import (
-    EmailWorkflowServices,
-    KnowledgeBase,
-    default_customer_profiles,
-    default_documents,
-)
+from ..services import EmailWorkflowServices
 from ..session import EmailWorkflowSession
 from .evaluation_cases import EmailWorkflowEvaluationCase, case_lookup
-from .scripted_model import ScriptedEmailWorkflowModel
 
 
 def build_evaluation_services() -> EmailWorkflowServices:
-    """Create deterministic services for low-cost evaluation runs."""
+    """Create the real application services used for evaluation runs."""
 
-    return EmailWorkflowServices(
-        llm=ScriptedEmailWorkflowModel(),
-        knowledge_base=KnowledgeBase(documents=default_documents()),
-        customer_profiles=default_customer_profiles(),
-    )
+    return create_default_services()
 
 
 def evaluate_pre_review_case(
@@ -50,7 +40,7 @@ def evaluate_pre_review_case(
         "intent": classification["intent"],
         "urgency": classification["urgency"],
         "interrupted": "__interrupt__" in result,
-        "requires_review": case.requires_review,
+        "requires_review": "__interrupt__" in result,
         "bug_ticket_created": bool(result.get("ticket_id")),
         "draft_response_nonempty": bool(result.get("draft_response")),
         "final_status": result.get("sent_status"),
@@ -88,7 +78,7 @@ def evaluate_end_to_end_case(
         "intent": classification["intent"],
         "urgency": classification["urgency"],
         "interrupted": "__interrupt__" in first_result,
-        "requires_review": case.requires_review,
+        "requires_review": "__interrupt__" in first_result,
         "bug_ticket_created": bool(first_result.get("ticket_id")),
         "draft_response_nonempty": bool(first_result.get("draft_response")),
         "final_status": final_result.get("sent_status"),

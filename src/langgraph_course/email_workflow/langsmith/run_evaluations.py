@@ -1,4 +1,4 @@
-"""CLI entrypoint for deterministic email-agent LangSmith evaluations."""
+"""CLI entrypoint for real email-agent LangSmith evaluations."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ EvaluationMode = Literal["pre-review", "approved", "rejected"]
 
 
 def main() -> int:
-    """Run deterministic LangSmith evaluations for the email workflow."""
+    """Run LangSmith evaluations against the real email workflow."""
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
