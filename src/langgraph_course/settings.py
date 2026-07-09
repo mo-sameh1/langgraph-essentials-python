@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     ollama_model: str = "langgraph-coder"
     ollama_num_ctx: int = Field(default=32768, ge=4096)
     ollama_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
+    langsmith_tracing: bool = False
+    langsmith_api_key: str | None = None
+    langsmith_project: str = "langgraph-essentials-email-agent"
+    langsmith_endpoint: str = "https://api.smith.langchain.com"
+    langsmith_workspace_id: str | None = None
 
 
 @lru_cache

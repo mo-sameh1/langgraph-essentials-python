@@ -8,6 +8,7 @@ dependencies = [
   "langchain>=1.0,<2",
   "langchain-ollama>=1.0,<2",
   "langgraph>=1.0,<2",
+  "langsmith>=0.9,<1",
   "pydantic-settings>=2.10,<3",
   "python-dotenv>=1.1,<2",
 ]
@@ -42,4 +43,3 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
 [tool.ruff.format]
 docstring-code-format = true
-

@@ -9,6 +9,7 @@ The exercises use a local Ollama model instead of the OpenAI API.
 - Python 3.12 managed with `uv`
 - LangGraph and LangChain
 - `langchain-ollama` with the local `langgraph-coder` model
+- optional LangSmith tracing/evaluation support
 - JupyterLab/IPython kernel for course notebooks
 - Ruff, Pyright, and Pytest for quality checks
 - A separate local Codex launcher (`codex-local`) for agentic repository work
@@ -67,5 +68,14 @@ uv run pyright
 uv run pytest
 ```
 
-See [docs/OLLAMA.md](docs/OLLAMA.md) for operations and troubleshooting.
+## Optional LangSmith setup
 
+LangSmith is opt-in in this repository. The local/default path stays free and
+uses Ollama only.
+
+```bash
+uv run python -m langgraph_course.email_workflow.langsmith.verify
+```
+
+See [docs/LANGSMITH.md](docs/LANGSMITH.md) for the free-tier setup path and
+[docs/OLLAMA.md](docs/OLLAMA.md) for local model operations.
