@@ -37,6 +37,7 @@ class EmailWorkflowSession:
         sender_email: str,
         email_id: str | None = None,
         source: str = "manual",
+        trace_enabled: bool | None = None,
     ) -> EmailWorkflowState:
         """Start a new workflow run for one email."""
 
@@ -59,6 +60,7 @@ class EmailWorkflowSession:
                 source=source,
                 phase="start",
             ),
+            enabled=trace_enabled,
         ) as run:
             result = self.graph.invoke(initial_state, self.config)
             run.add_metadata(
@@ -85,6 +87,7 @@ class EmailWorkflowSession:
         approved: bool,
         edited_response: str | None = None,
         source: str = "manual",
+        trace_enabled: bool | None = None,
     ) -> EmailWorkflowState:
         """Resume an interrupted review step."""
 
@@ -111,6 +114,7 @@ class EmailWorkflowSession:
                 phase="resume_review",
                 review_outcome=review_outcome,
             ),
+            enabled=trace_enabled,
         ) as run:
             result = self.graph.invoke(Command(resume=decision), self.config)
             run.add_metadata(

@@ -46,10 +46,11 @@ def workflow_root_trace(
     metadata: Mapping[str, Any],
     tags: list[str],
     config: EmailWorkflowLangSmithConfig | None = None,
+    enabled: bool | None = None,
 ) -> Iterator[RunTree]:
     """Open a root workflow trace when LangSmith is configured."""
 
-    with langsmith_tracing_context(config=config), trace(
+    with langsmith_tracing_context(config=config, enabled=enabled), trace(
         name,
         run_type="chain",
         inputs=dict(inputs),
