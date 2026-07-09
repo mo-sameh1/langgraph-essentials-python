@@ -68,14 +68,52 @@ uv run pyright
 uv run pytest
 ```
 
-## Optional LangSmith setup
+## Email agent workflows
 
-LangSmith is opt-in in this repository. The local/default path stays free and
-uses Ollama only.
+### Local-only path
+
+This is the default and lowest-cost path. Keep `LANGSMITH_TRACING=false` in
+`.env`, then open the application notebook:
+
+```bash
+uv run jupyter lab
+```
+
+Open `labs/lab6_application.ipynb` and run it normally. The email agent will
+use Ollama only and will not upload traces.
+
+### LangSmith-enabled tracing path
+
+LangSmith is opt-in. After adding your free-tier API key to `.env`, verify the
+setup before running the notebook or scripts:
 
 ```bash
 uv run python -m langgraph_course.email_workflow.langsmith.verify
 ```
 
-See [docs/LANGSMITH.md](docs/LANGSMITH.md) for the free-tier setup path and
-[docs/OLLAMA.md](docs/OLLAMA.md) for local model operations.
+If tracing is active, the application notebook will tag runs with
+`source="notebook"` so they are easy to find in LangSmith Studio.
+
+### Dataset seeding and evaluation commands
+
+Seed or refresh the canonical LangSmith dataset:
+
+```bash
+uv run python -m langgraph_course.email_workflow.langsmith.seed_dataset
+```
+
+Run deterministic evaluations locally without uploading results:
+
+```bash
+uv run python -m langgraph_course.email_workflow.langsmith.run_evaluations --mode all
+```
+
+Upload one evaluation experiment to LangSmith when you want a tracked run:
+
+```bash
+uv run python -m langgraph_course.email_workflow.langsmith.run_evaluations --mode all --upload-results
+```
+
+See [docs/LANGSMITH.md](docs/LANGSMITH.md) for the free-tier LangSmith setup
+and UI workflow guide, and [docs/OLLAMA.md](docs/OLLAMA.md) for local model
+operations.
