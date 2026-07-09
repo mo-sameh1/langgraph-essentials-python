@@ -11,8 +11,10 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
 from .langsmith import (
+    LangSmithRunReference,
     build_workflow_metadata,
     build_workflow_tags,
+    log_review_feedback,
     summarize_workflow_outputs,
     workflow_root_trace,
 )
@@ -135,7 +137,20 @@ class EmailWorkflowSession:
                 )
             )
             run.end(outputs=summarize_workflow_outputs(result))
-            return cast(EmailWorkflowState, result)
+            run_reference = LangSmithRunReference(
+                run_id=run.id,
+                trace_id=run.trace_id,
+            )
+        typed_result = cast(EmailWorkflowState, result)
+        log_review_feedback(
+            run_reference=run_reference,
+            state=typed_result,
+            decision=decision,
+            review_outcome=review_outcome,
+            thread_id=self.thread_id,
+            enabled=trace_enabled,
+        )
+        return typed_result
 
 
 def _determine_review_outcome(
