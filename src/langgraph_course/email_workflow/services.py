@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass, field
 from itertools import count
 
+from .langsmith import workflow_span
 from .types import ChatModelLike, CustomerHistoryData
 
 
@@ -36,26 +37,39 @@ class KnowledgeBase:
     def search(self, query: str, *, limit: int = 3) -> list[str]:
         """Return the best-matching document snippets for a query."""
 
-        query_terms = set(_tokenize(query))
-        if not query_terms:
-            return [
-                self._format_document(document) for document in self.documents[:limit]
-            ]
+        with workflow_span(
+            name="knowledge_base.search",
+            run_type="retriever",
+            inputs={"query": query, "limit": limit},
+            metadata={"workflow_component": "knowledge_base"},
+            tags=["component:knowledge-base"],
+        ) as run:
+            query_terms = set(_tokenize(query))
+            if not query_terms:
+                results = [
+                    self._format_document(document) for document in self.documents[:limit]
+                ]
+                if run is not None:
+                    run.end(outputs={"results": results})
+                return results
 
-        scored_documents: list[tuple[int, KnowledgeDocument]] = []
-        for document in self.documents:
-            haystack = " ".join((document.title, document.content, *document.tags))
-            document_terms = set(_tokenize(haystack))
-            score = len(query_terms & document_terms)
-            if score > 0:
-                scored_documents.append((score, document))
+            scored_documents: list[tuple[int, KnowledgeDocument]] = []
+            for document in self.documents:
+                haystack = " ".join((document.title, document.content, *document.tags))
+                document_terms = set(_tokenize(haystack))
+                score = len(query_terms & document_terms)
+                if score > 0:
+                    scored_documents.append((score, document))
 
-        scored_documents.sort(key=lambda item: item[0], reverse=True)
-        best_documents = [document for _, document in scored_documents[:limit]]
-        if not best_documents:
-            best_documents = self.documents[:limit]
+            scored_documents.sort(key=lambda item: item[0], reverse=True)
+            best_documents = [document for _, document in scored_documents[:limit]]
+            if not best_documents:
+                best_documents = self.documents[:limit]
 
-        return [self._format_document(document) for document in best_documents]
+            results = [self._format_document(document) for document in best_documents]
+            if run is not None:
+                run.end(outputs={"results": results})
+            return results
 
     @staticmethod
     def _format_document(document: KnowledgeDocument) -> str:
@@ -72,9 +86,18 @@ class TicketRegistry:
     def create_ticket(self, summary: str) -> str:
         """Create a new bug ticket and return its identifier."""
 
-        ticket_id = f"BUG-{next(self._counter):04d}"
-        self.tickets[ticket_id] = summary
-        return ticket_id
+        with workflow_span(
+            name="bug_ticket.create",
+            run_type="tool",
+            inputs={"summary": summary},
+            metadata={"workflow_component": "bug_tracking"},
+            tags=["component:bug-tracking"],
+        ) as run:
+            ticket_id = f"BUG-{next(self._counter):04d}"
+            self.tickets[ticket_id] = summary
+            if run is not None:
+                run.end(outputs={"ticket_id": ticket_id})
+            return ticket_id
 
 
 @dataclass
@@ -94,6 +117,35 @@ class EmailWorkflowServices:
             sender_email,
             {"tier": "standard", "region": "global", "previous_tickets": 0},
         )
+
+    def record_sent_reply(
+        self,
+        *,
+        email_id: str,
+        sender_email: str,
+        response: str,
+    ) -> SentReplyRecord:
+        """Persist a sent reply record and expose it as a LangSmith tool span."""
+
+        with workflow_span(
+            name="email_reply.persist",
+            run_type="tool",
+            inputs={
+                "email_id": email_id,
+                "sender_email": sender_email,
+            },
+            metadata={"workflow_component": "send_reply"},
+            tags=["component:send-reply"],
+        ) as run:
+            record = SentReplyRecord(
+                email_id=email_id,
+                sender_email=sender_email,
+                response=response,
+            )
+            self.sent_replies.append(record)
+            if run is not None:
+                run.end(outputs={"sent_reply_preview": response[:80]})
+            return record
 
 
 def default_documents() -> list[KnowledgeDocument]:

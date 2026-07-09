@@ -18,7 +18,7 @@ from .helpers import (
     require_normalized_email,
 )
 from .prompts import build_classification_prompt, build_response_prompt
-from .services import EmailWorkflowServices, SentReplyRecord
+from .services import EmailWorkflowServices
 from .types import (
     EmailClassificationData,
     EmailClassificationModel,
@@ -171,12 +171,10 @@ class SendReplyNode:
 
     def __call__(self, state: EmailWorkflowState) -> EmailWorkflowState:
         response = require_draft_response(state)
-        self.services.sent_replies.append(
-            SentReplyRecord(
-                email_id=state["email_id"],
-                sender_email=state["sender_email"],
-                response=response,
-            )
+        self.services.record_sent_reply(
+            email_id=state["email_id"],
+            sender_email=state["sender_email"],
+            response=response,
         )
         print(f"Sending reply: {response[:80]}...")
         return cast(
